@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html style="height: 100%; margin: 0px; overflow: hidden;">
+
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.2.45/vue.global.prod.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/element-plus/2.2.27/index.full.min.js"></script>
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-plus/2.2.27/index.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/element-plus-icons-vue/2.0.10/index.iife.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.2.1/axios.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/marked/4.2.5/marked.min.js"></script>
+    <link href="https://cdn.bootcdn.net/ajax/libs/github-markdown-css/5.1.0/github-markdown-light.min.css"
+        rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+    <link href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/github.min.css" rel="stylesheet">
+    <script src="../markdown.js"></script>
+    <title>GuTalk</title>
+    <base target="_blank">
+</head>
+
+<body>
+    <div id="app" style="height: 100vh;">
+        <gutalk-issue></gutalk-issue>
+    </div>
+    <template id="issue">
+        <el-container style="height: 100%;">
+            <el-header style="margin-top: 3%; margin-left: 15%; margin-right: 15%;">
+                <a target="_self" href="https://gutalk.netlify.app/">
+                    <el-image style="height: 100%;" src="../img/gutalk.gif"></el-image>
+                </a>
+            </el-header>
+            <el-main style="margin-bottom: 5%; margin-left: 15%; margin-right: 15%; height: 100%;">
+                <el-scrollbar style="height: 100%;">
+                    <div v-if="content!=false" style="margin: 10px;">
+                        <el-alert v-if="content.state=='closed'" type="warning" :closable="false">
+                            <template #title>
+                                这个帖子在 {{ new Date(content.closed_at).toLocaleString() }} 关闭了
+                            </template>
+                        </el-alert>
+                    </div>
+                    <el-card shadow="hover" style="margin: 10px;" v-loading="!content">
+                        <template #header>
+                            <div style="font-size: 18px; display: inline-block;"> {{ content.title }} </div>
+                            <el-icon v-if="content.locked" style="margin-left: 3px; vertical-align: middle;"
+                                color="orange">
+                                <Lock />
+                            </el-icon>
+                            <el-tag v-for="j in content.labels" size="small" round
+                                style="margin-left: 5px; vertical-align: middle;" type="info" :color="`#${j.color}`">
+                                {{ j.name }} </el-tag>
+                            <el-button v-if="isAdmin||user==myUsername" @click="edit"
+                                style="float: right;">编辑</el-button>
+                            <div v-if="isAdmin" style="float: right;">
+                                <el-button @click="lock" :loading="locking">
+                                    {{ content.locked?'解锁':'锁定' }}
+                                </el-button>
+                            </div>
+                        </template>
+                        <div v-if="content!=false">
+                            <div style="width: 56px; display: inline-block;">
+                                <el-avatar style="display: block; margin-right: auto;" size="large"
+                                    :src="content.user.avatar_url"></el-avatar>
+                                <div
+                                    style="overflow: hidden; font-size: 14px; word-wrap: break-word; text-align: center; margin: auto; margin-top: 5px;">
+                                    {{ content.user.login }} </div>
+                            </div>
+                            <div
+                                style="margin-left: 15px; max-width: calc(100% - 72px); display: inline-block; vertical-align: top;">
+                                <div class="markdown-body" v-html="marked(content.body)"></div>
+                            </div>
+                        </div>
+                    </el-card>
+                    <div v-if="content!=false&&comments!=false" style="margin-top: 25px;">
+                        <el-card v-for="i in comments" shadow="hover" style="margin: 10px;">
+                            <div style="width: 56px; display: inline-block; overflow: hidden;">
+                                <el-avatar style="display: block; margin-right: auto;" size="large"
+                                    :src="i.user.avatar_url"></el-avatar>
+                                <div
+                                    style="font-size: 14px; word-wrap: break-word; text-align: center; margin: auto; margin-top: 5px;">
+                                    {{ i.user.login }} </div>
+                            </div>
+                            <div
+                                style="margin-left: 15px; max-width: calc(100% - 72px); display: inline-block; vertical-align: top;">
+                                <div class="markdown-body" v-html="marked(i.body)"></div>
+                            </div>
+                        </el-card>
+                    </div>
+                    <div v-if="isLogin&&content!=false" style="margin: 10px; margin-top: 25px;">
+                        <md-editor ref="editor" :rows="6" :loading="commenting" @submit="comment"></md-editor>
+                    </div>
+                </el-scrollbar>
+            </el-main>
+        </el-container>
+    </template>
+    <script src="index.js"></script>
+</body>
+
+</html>

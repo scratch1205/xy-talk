@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>GuTalk</title>
+</head>
+
+<body>
+    <p>请稍后，正在处理登录信息...</p>
+    <script>
+        let params = (new URL(document.location)).searchParams;
+        if (params.get('code') != undefined) {
+            fetch(
+                `https://gutalk.netlify.app/.netlify/functions/signin?code=${params.get('code')}`
+            ).then(async (res) => {
+                let json = await res.json();
+                localStorage.setItem('github-token', `${json.token_type} ${json.access_token}`);
+                close();
+            }).catch(function () {
+                close();
+            });
+        } else {
+            close();
+        }
+    </script>
+</body>
+
+</html>
